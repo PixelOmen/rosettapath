@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from shares import SHARES
+from libs.shares import SHARES
 
 class RosettaPath:
     def __init__(self, userpath: str|Path):
