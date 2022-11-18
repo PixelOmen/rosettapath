@@ -7,7 +7,7 @@ if ROOT not in sys.path:
     sys.path.append(str(ROOT))
 
 from rosettapath import RosettaPath
-import testfiles
+from testing import testfiles
 
 
 start = testfiles.MAC_PATH

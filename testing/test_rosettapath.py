@@ -2,12 +2,16 @@ import sys
 import unittest
 from pathlib import Path
 
+import testfiles
+
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 if ROOT not in sys.path:
     sys.path.append(str(ROOT))
+ROOT_PARENT = ROOT.parent
+if ROOT_PARENT not in sys.path:
+    sys.path.append(str(ROOT_PARENT))
 
-import testfiles
 from rosettapath import RosettaPath
 
 class TestPaths(unittest.TestCase):
