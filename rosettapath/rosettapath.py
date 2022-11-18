@@ -22,7 +22,7 @@ class RosettaPath:
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("/", "\\")
 
-    def mac_path(self, usermount: str="volumes/") -> str:
+    def mac_path(self, usermount: str="Volumes/") -> str:
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("\\", "/")
 
