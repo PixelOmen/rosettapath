@@ -49,6 +49,13 @@ class TestPaths(unittest.TestCase):
                 continue
             win_path = RosettaPath(path).linux_path()
             self.assertEqual(win_path, testfiles.LINUX_PATH)
+
+    def test_nomount(self):
+        for path in testfiles.ALL_PATHS:
+            if path == testfiles.NOMOUNT_PATH:
+                continue
+            win_path = RosettaPath(path).nomount_path()
+            self.assertEqual(win_path, testfiles.NOMOUNT_PATH)
             
 
 if __name__ == "__main__":
