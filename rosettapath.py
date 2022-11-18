@@ -43,8 +43,7 @@ class RosettaPath:
         is_ip = True if startindex > 4 else False
         return is_ip, startindex
 
-    def _removemount(self, userpath: str|Path) -> Path:
-        userpath = Path(userpath)
+    def _removemount(self, userpath: Path) -> Path:
         is_ip, startindex = self._isipmount(userpath)
         if is_ip:
             return Path(str(userpath)[startindex:])
@@ -65,8 +64,7 @@ class RosettaPath:
             return Path(*userpath.parts[is_share[1]:])
         raise ValueError(f"Malformed mount point for filepath: {str(userpath)}")
 
-    def _change_mount(self, userpath: str|Path, newmount: str="") -> str:
-        userpath = Path(userpath)
+    def _change_mount(self, userpath: Path, newmount: str="") -> str:
         nomountpath = self._removemount(userpath)
         if not newmount:
             return str(nomountpath)

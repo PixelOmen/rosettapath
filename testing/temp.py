@@ -10,7 +10,7 @@ from rosettapath import RosettaPath
 import testfiles
 
 
-start = testfiles.NOMOUNT_PATH
+start = testfiles.MAC_PATH
 rpath = RosettaPath(start)
 server_result = rpath.server_path()
 win_result = rpath.win_path()
