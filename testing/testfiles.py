@@ -1,0 +1,5 @@
+WINDOWS_IP_PATH = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
+WINDOWS_PATH = r"C:\mount\eacosta\Projects\python\tkdispatch\app.py"
+MAC_PATH = r"volumes/rei08/eacosta/Projects/python/tkdispatch/app.py"
+LINUX_PATH = r"mnt/rei08/eacosta/Projects/python/tkdispatch/app.py"
+NOMOUNT_PATH = r"rei08/eacosta/Projects/python/tkdispatch/app.py"
