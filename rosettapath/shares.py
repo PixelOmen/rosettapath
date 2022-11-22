@@ -1,4 +1,5 @@
 SHARES = [
+    "nimbus_studiorunner",
     "nimbus",
     "rei01",
     "rei02",
