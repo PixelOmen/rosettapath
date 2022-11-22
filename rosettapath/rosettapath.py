@@ -4,9 +4,10 @@ from pathlib import Path
 from .shares import SHARES
 
 class RosettaPath:
+    DEFAULT_SERVER = r"\\10.0.20.175" + "\\"
     def __init__(self, userpath: str|Path):
         self.userpath = Path(userpath)
-        self.servermount = r"\\10.0.20.175" + "\\"
+        self.servermount = RosettaPath.DEFAULT_SERVER
 
     def server_path(self, usermount: str=..., platform: str="win") -> str:
         if usermount is ...:
