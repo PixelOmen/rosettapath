@@ -1,14 +1,18 @@
 import re
 from pathlib import Path
 
-from .shares import SHARES
-
 class RosettaPath:
     default_server = r"\\10.0.20.175" + "\\"
+    mounts_regex = {
+        "ip": r"\d+.\d+.\d+.\d+",
+        "linux": r"^mnt",
+        "mac": r"^volumes",
+    }
     
-    def __init__(self, userpath: str|Path):
+    def __init__(self, userpath: str|Path, win_mount_regex: str=r"^\w:\\mount"):
         self.userpath = Path(userpath)
         self.servermount = RosettaPath.default_server
+        self._win_regex = win_mount_regex
 
     def server_path(self, usermount: str=..., platform: str="win") -> str:
         if usermount is ...:
@@ -36,43 +40,26 @@ class RosettaPath:
         newpath = self._change_mount(self.userpath)
         return newpath.replace("\\", "/")
 
-    def _isipmount(self, userpath: str|Path) -> tuple[bool, int]:
+    def _hasmount(self, regexstr: str, userpath: str|Path) -> tuple[bool, int]:
         userpath = Path(userpath)
-        mountstart = re.search(r"[a-z]", str(userpath), re.IGNORECASE)
+        mountstart = re.search(regexstr, str(userpath), re.IGNORECASE)
         if not mountstart:
-            raise ValueError(f"Malformed mount point for filepath: {str(userpath)}")
-        startindex = mountstart.span()[0]
-        is_ip = True if startindex > 4 else False
-        return is_ip, startindex
+            return False, 0
+        endindex = mountstart.span()[1]
+        return True, endindex
 
     def _removemount(self, userpath: Path) -> Path:
-        is_ip, startindex = self._isipmount(userpath)
-        if is_ip:
-            return Path(str(userpath)[startindex:])
-
-        if userpath.parts[0][0].lower() == "c" and userpath.parts[1].lower() == "mount":
-            return Path(*userpath.parts[2:])
-
-        is_share = (False, None)
-        for vol in SHARES:
-            for index, part in enumerate(userpath.parts):
-                if part.lower() == vol:
-                    is_share = (True, index)
-                    break
-            if is_share[0]:
-                break
-            
-        if is_share[0]:
-            return Path(*userpath.parts[is_share[1]:])
-        raise ValueError(f"Malformed mount point for filepath: {str(userpath)}")
+        for regex in (list(RosettaPath.mounts_regex.values()) + [self._win_regex]):
+            is_mount, startindex = self._hasmount(regex, userpath)
+            if is_mount:
+                newpath = Path(str(userpath)[startindex:])
+                if newpath.parts[0] == "\\" or newpath.parts[0] == "/":
+                    newpath = Path(*newpath.parts[1:])
+                return newpath
+        return userpath
 
     def _change_mount(self, userpath: Path, newmount: str="") -> str:
         nomountpath = self._removemount(userpath)
         if not newmount:
             return str(nomountpath)
-        if self._isipmount(newmount+"test")[0]:
-            newmount = newmount + nomountpath.parts[0]
-            nomountpath = Path(*nomountpath.parts[1:])
-        else:
-            newmount = newmount
-        return str(Path(newmount, nomountpath))
+        return str(Path(newmount + str(nomountpath)))
