@@ -1,22 +1,23 @@
 import re
 from pathlib import Path
 
-class RosettaPath:
-    default_server = r"\\10.0.20.175" + "\\"
-    mounts_regex = {
-        "ip": r"\d+.\d+.\d+.\d+",
-        "linux": r"^mnt",
-        "mac": r"^volumes",
-    }
-    
-    def __init__(self, userpath: str|Path, win_mount_regex: str=r"^\w:\\mount"):
+class RosettaPath:    
+    def __init__(self, userpath: str|Path):
         self.userpath = Path(userpath)
-        self.servermount = RosettaPath.default_server
-        self._win_regex = win_mount_regex
+        self.default_server_mount = r"\\10.0.20.175" + "\\"
+        self.default_win_mount = "C:/mount/"
+        self.default_linux_mount = "mnt/"
+        self.default_mac_mount = "Volumes/"
+        self.mounts_regex = {
+            "windows": r"^\w:\\mount",
+            "ip": r"\d+.\d+.\d+.\d+",
+            "linux": r"^mnt",
+            "mac": r"^volumes"
+        }
 
     def server_path(self, usermount: str=..., platform: str="win") -> str:
         if usermount is ...:
-            usermount = self.servermount
+            usermount = self.default_server_mount
         newpath = self._change_mount(self.userpath, usermount)
         if platform.lower() == "win":
             newpath = newpath.replace("/", "\\")
@@ -24,15 +25,21 @@ class RosettaPath:
             newpath = newpath.replace("\\", "/")
         return newpath
 
-    def win_path(self, usermount: str="C:/mount/") -> str:
+    def win_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.default_win_mount
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("/", "\\")
 
-    def mac_path(self, usermount: str="Volumes/") -> str:
+    def mac_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.default_mac_mount
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("\\", "/")
 
-    def linux_path(self, usermount: str="mnt/") -> str:
+    def linux_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.default_linux_mount
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("\\", "/")
 
@@ -49,7 +56,7 @@ class RosettaPath:
         return True, endindex
 
     def _removemount(self, userpath: Path) -> Path:
-        for regex in (list(RosettaPath.mounts_regex.values()) + [self._win_regex]):
+        for regex in self.mounts_regex.values():
             is_mount, startindex = self._hasmount(regex, userpath)
             if is_mount:
                 newpath = Path(str(userpath)[startindex:])

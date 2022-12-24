@@ -17,13 +17,13 @@ from rosettapath import RosettaPath
 class TestPaths(unittest.TestCase):
     def test_ip(self):
         rpath = RosettaPath(testpaths.WINDOWS_IP_PATH)
-        is_ip, _ = rpath._hasmount(RosettaPath.mounts_regex["ip"], rpath.userpath)
+        is_ip, _ = rpath._hasmount(rpath.mounts_regex["ip"], rpath.userpath)
         self.assertTrue(is_ip)
         for path in testpaths.ALL_PATHS:
             if path == testpaths.WINDOWS_IP_PATH:
                 continue
             rpath = RosettaPath(path)
-            is_ip, _ = rpath._hasmount(RosettaPath.mounts_regex["ip"], rpath.userpath)
+            is_ip, _ = rpath._hasmount(rpath.mounts_regex["ip"], rpath.userpath)
             self.assertFalse(is_ip)
 
     def test_server(self):
