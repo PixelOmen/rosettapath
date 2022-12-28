@@ -1,19 +1,26 @@
 import re
 from pathlib import Path
 
-class RosettaPath:    
+class RosettaPath:
+    default_server_mount = r"\\192.168.10.1" + "\\"
+    default_win_mount = "C:/mount/"
+    default_linux_mount = "mnt/"
+    default_mac_mount = "Volumes/"
+    mounts_regex = {
+        "windows": r"^\w:\\mount",
+        "ip": r"\d+.\d+.\d+.\d+",
+        "linux": r"^mnt",
+        "mac": r"^volumes"
+    }
     def __init__(self, userpath: str|Path):
         self.userpath = Path(userpath)
-        self.default_server_mount = r"\\10.0.20.175" + "\\"
-        self.default_win_mount = "C:/mount/"
-        self.default_linux_mount = "mnt/"
-        self.default_mac_mount = "Volumes/"
-        self.mounts_regex = {
-            "windows": r"^\w:\\mount",
-            "ip": r"\d+.\d+.\d+.\d+",
-            "linux": r"^mnt",
-            "mac": r"^volumes"
-        }
+        if self.userpath.parts[0] == "\\" or self.userpath.parts[0] == "/":
+            self.userpath = Path(*self.userpath.parts[1:])
+        self.default_server_mount = RosettaPath.default_server_mount
+        self.default_win_mount = RosettaPath.default_win_mount
+        self.default_linux_mount = RosettaPath.default_linux_mount
+        self.default_mac_mount = RosettaPath.default_mac_mount
+        self.mounts_regex = RosettaPath.mounts_regex
 
     def server_path(self, usermount: str=..., platform: str="win") -> str:
         if usermount is ...:
