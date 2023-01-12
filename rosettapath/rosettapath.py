@@ -8,7 +8,7 @@ class RosettaPath:
     default_mac_mount = "Volumes/"
     mounts_regex = {
         "windows": r"^\w:\\mount",
-        "ip": r"\d+.\d+.\d+.\d+",
+        "ip": r"\d+\.\d+\.\d+\.\d+",
         "linux": r"^mnt",
         "mac": r"^volumes"
     }
