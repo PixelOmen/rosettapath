@@ -1,12 +1,14 @@
 import re
+import os
+import itertools
 from pathlib import Path
 
 class RosettaPath:
-    default_server_mount = r"\\192.168.10.1" + "\\"
-    default_win_mount = "C:/mount/"
-    default_linux_mount = "mnt/"
-    default_mac_mount = "Volumes/"
-    mounts_regex = {
+    default_server_prefix = r"\\192.168.10.1" + "\\"
+    default_win_prefix = "C:/mount/"
+    default_linux_prefix = "mnt/"
+    default_mac_prefix = "Volumes/"
+    input_mount_patterns = {
         "windows": r"^\w:\\mount",
         "ip": r"\d+\.\d+\.\d+\.\d+",
         "linux": r"^mnt",
@@ -16,43 +18,11 @@ class RosettaPath:
         self.userpath = Path(userpath)
         if self.userpath.parts[0] == "\\" or self.userpath.parts[0] == "/":
             self.userpath = Path(*self.userpath.parts[1:])
-        self.default_server_mount = RosettaPath.default_server_mount
-        self.default_win_mount = RosettaPath.default_win_mount
-        self.default_linux_mount = RosettaPath.default_linux_mount
-        self.default_mac_mount = RosettaPath.default_mac_mount
-        self.mounts_regex = RosettaPath.mounts_regex
-
-    def server_path(self, usermount: str=..., platform: str="win") -> str:
-        if usermount is ...:
-            usermount = self.default_server_mount
-        newpath = self._change_mount(self.userpath, usermount)
-        if platform.lower() == "win":
-            newpath = newpath.replace("/", "\\")
-        else:
-            newpath = newpath.replace("\\", "/")
-        return newpath
-
-    def win_path(self, usermount: str=...) -> str:
-        if usermount is ...:
-            usermount = self.default_win_mount
-        newpath = self._change_mount(self.userpath, usermount)
-        return newpath.replace("/", "\\")
-
-    def mac_path(self, usermount: str=...) -> str:
-        if usermount is ...:
-            usermount = self.default_mac_mount
-        newpath = self._change_mount(self.userpath, usermount)
-        return newpath.replace("\\", "/")
-
-    def linux_path(self, usermount: str=...) -> str:
-        if usermount is ...:
-            usermount = self.default_linux_mount
-        newpath = self._change_mount(self.userpath, usermount)
-        return newpath.replace("\\", "/")
-
-    def nomount_path(self) -> str:
-        newpath = self._change_mount(self.userpath)
-        return newpath.replace("\\", "/")
+        self.server_prefix = RosettaPath.default_server_prefix
+        self.win_prefix = RosettaPath.default_win_prefix
+        self.linux_prefix = RosettaPath.default_linux_prefix
+        self.mac_prefix = RosettaPath.default_mac_prefix
+        self.input_mount_patterns = RosettaPath.input_mount_patterns
 
     def _hasmount(self, regexstr: str, userpath: str|Path) -> tuple[bool, int]:
         userpath = Path(userpath)
@@ -63,7 +33,7 @@ class RosettaPath:
         return True, endindex
 
     def _removemount(self, userpath: Path) -> Path:
-        for regex in self.mounts_regex.values():
+        for regex in self.input_mount_patterns.values():
             is_mount, startindex = self._hasmount(regex, userpath)
             if is_mount:
                 newpath = Path(str(userpath)[startindex:])
@@ -77,3 +47,77 @@ class RosettaPath:
         if not newmount:
             return str(nomountpath)
         return str(Path(newmount + str(nomountpath)))
+    
+    def _make_seq_name(self, filename: Path) -> tuple[int, str]:
+        framestr = filename.name.split(".")[1]
+        re_name = re.search(r".+?\.", str(filename.name))
+        if not re_name:
+            return (0, "")
+        digits = len(framestr)
+        return (digits, re_name.group()[:-1]+f".%{str(digits).zfill(2)}d"+filename.suffix)
+
+    def server_path(self, usermount: str=..., platform: str="win") -> str:
+        if usermount is ...:
+            usermount = self.server_prefix
+        newpath = self._change_mount(self.userpath, usermount)
+        if platform.lower() == "win":
+            newpath = newpath.replace("/", "\\")
+        else:
+            newpath = newpath.replace("\\", "/")
+        return newpath
+
+    def win_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.win_prefix
+        newpath = self._change_mount(self.userpath, usermount)
+        return newpath.replace("/", "\\")
+
+    def mac_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.mac_prefix
+        newpath = self._change_mount(self.userpath, usermount)
+        return newpath.replace("\\", "/")
+
+    def linux_path(self, usermount: str=...) -> str:
+        if usermount is ...:
+            usermount = self.linux_prefix
+        newpath = self._change_mount(self.userpath, usermount)
+        return newpath.replace("\\", "/")
+
+    def nomount_path(self) -> str:
+        newpath = self._change_mount(self.userpath)
+        return newpath.replace("\\", "/")
+
+    def is_seq(self, userpath: Path=..., seq_depth: int=10) -> tuple[bool, int, str]:
+        if userpath is ...:
+            userpath = self.userpath
+        if userpath.is_dir():
+            return (False, 0, "")
+        iter = os.scandir(userpath.parent)
+        iterslice = itertools.islice(iter, seq_depth)
+        firstfile = None
+        secondfile = None
+        for f in iterslice:
+            if not firstfile:
+                firstfile = Path(f.path)
+                continue
+            if not secondfile:
+                secondfile = Path(f.path)
+                break
+        if not firstfile or not secondfile:
+            return (False, 0, "")
+
+        firstseq = re.search(r".*\.\d*\.", str(firstfile.name))
+        secondseq = re.search(r".*\.\d*\.", str(secondfile.name))
+
+        if firstseq and secondseq:
+            return (True, *self._make_seq_name(firstfile))
+        else:
+            return (False, 0, "")
+
+    def contains_seq(self) -> tuple[bool, int, str]:
+        if self.userpath.is_file():
+            return (False, 0, "")
+        for file in self.userpath.iterdir():
+            return self.is_seq(file)
+        return (False, 0, "")
