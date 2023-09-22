@@ -1,1 +1,1 @@
-from .rosettapath import *
+from .src import *

@@ -12,7 +12,7 @@ ROOT_PARENT = ROOT.parent
 if ROOT_PARENT not in sys.path:
     sys.path.append(str(ROOT_PARENT))
 
-from rosettapath import RosettaPath
+from src import RosettaPath
 
 class TestPaths(unittest.TestCase):
     def test_ip(self):
