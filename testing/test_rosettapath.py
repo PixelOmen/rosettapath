@@ -37,7 +37,7 @@ class TestPaths(unittest.TestCase):
         for path in testpaths.ALL_PATHS:
             if path == testpaths.WINDOWS_PATH:
                 continue
-            win_path = RosettaPath(path).win_path(f"{testpaths.WINDOWS_PATH[0]}:/mount/")
+            win_path = RosettaPath(path).win_path()
             self.assertEqual(win_path, testpaths.WINDOWS_PATH)
 
     def test_mac(self):

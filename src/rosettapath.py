@@ -2,6 +2,7 @@ import re
 import os
 import itertools
 from pathlib import Path
+from typing import Union
 
 class RosettaPath:
     default_server_prefix = r"\\192.168.10.1" + "\\"
@@ -56,8 +57,8 @@ class RosettaPath:
         digits = len(framestr)
         return (digits, re_name.group()[:-1]+f".%{str(digits).zfill(2)}d"+filename.suffix)
 
-    def server_path(self, usermount: str=..., platform: str="win") -> str:
-        if usermount is ...:
+    def server_path(self, usermount: Union[str, None]=None, platform: str="win") -> str:
+        if usermount is None:
             usermount = self.server_prefix
         newpath = self._change_mount(self.userpath, usermount)
         if platform.lower() == "win":
@@ -66,20 +67,20 @@ class RosettaPath:
             newpath = newpath.replace("\\", "/")
         return newpath
 
-    def win_path(self, usermount: str=...) -> str:
-        if usermount is ...:
+    def win_path(self, usermount: Union[str, None]=None) -> str:
+        if usermount is None:
             usermount = self.win_prefix
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("/", "\\")
 
-    def mac_path(self, usermount: str=...) -> str:
-        if usermount is ...:
+    def mac_path(self, usermount: Union[str, None]=None) -> str:
+        if usermount is None:
             usermount = self.mac_prefix
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("\\", "/")
 
-    def linux_path(self, usermount: str=...) -> str:
-        if usermount is ...:
+    def linux_path(self, usermount: Union[str, None]=None) -> str:
+        if usermount is None:
             usermount = self.linux_prefix
         newpath = self._change_mount(self.userpath, usermount)
         return newpath.replace("\\", "/")
@@ -88,8 +89,8 @@ class RosettaPath:
         newpath = self._change_mount(self.userpath)
         return newpath.replace("\\", "/")
 
-    def is_seq(self, userpath: Path=..., seq_depth: int=10) -> tuple[bool, int, str]:
-        if userpath is ...:
+    def is_seq(self, userpath: Union[Path, None]=None, seq_depth: int=10) -> tuple[bool, int, str]:
+        if userpath is None:
             userpath = self.userpath
         if userpath.is_dir():
             return (False, 0, "")
