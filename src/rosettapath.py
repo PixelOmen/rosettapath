@@ -15,7 +15,8 @@ class RosettaPath:
         "linux": r"^mnt",
         "mac": r"^volumes"
     }
-    def __init__(self, userpath: str|Path):
+    
+    def __init__(self, userpath: Union[str, Path]):
         self.userpath = Path(userpath)
         if self.userpath.parts[0] == "\\" or self.userpath.parts[0] == "/":
             self.userpath = Path(*self.userpath.parts[1:])
@@ -25,7 +26,7 @@ class RosettaPath:
         self.mac_prefix = RosettaPath.default_mac_prefix
         self.input_mount_patterns = RosettaPath.input_mount_patterns
 
-    def _hasmount(self, regexstr: str, userpath: str|Path) -> tuple[bool, int]:
+    def _hasmount(self, regexstr: str, userpath: Union[str, Path]) -> tuple[bool, int]:
         userpath = Path(userpath)
         mountstart = re.search(regexstr, str(userpath), re.IGNORECASE)
         if not mountstart:
@@ -48,14 +49,6 @@ class RosettaPath:
         if not newmount:
             return str(nomountpath)
         return str(Path(newmount + str(nomountpath)))
-    
-    def _make_seq_name(self, filename: Path) -> tuple[int, str]:
-        framestr = filename.name.split(".")[1]
-        re_name = re.search(r".+?\.", str(filename.name))
-        if not re_name:
-            return (0, "")
-        digits = len(framestr)
-        return (digits, re_name.group()[:-1]+f".%{str(digits).zfill(2)}d"+filename.suffix)
 
     def server_path(self, usermount: Union[str, None]=None, platform: str="win") -> str:
         if usermount is None:
@@ -89,12 +82,27 @@ class RosettaPath:
         newpath = self._change_mount(self.userpath)
         return newpath.replace("\\", "/")
 
-    def is_seq(self, userpath: Union[Path, None]=None, seq_depth: int=10) -> tuple[bool, int, str]:
-        if userpath is None:
-            userpath = self.userpath
-        if userpath.is_dir():
-            return (False, 0, "")
-        iter = os.scandir(userpath.parent)
+
+
+def _make_seq_name(filename: Path) -> tuple[int, str]:
+    framestr = filename.name.split(".")[1]
+    re_name = re.search(r".+?\.", str(filename.name))
+    if not re_name:
+        return (0, "")
+    digits = len(framestr)
+    return (digits, re_name.group()[:-1]+f".%{str(digits).zfill(2)}d"+filename.suffix)
+
+def is_seq(userpath: Union[Path, str], seq_depth: int=10) -> tuple[bool, int, str]:
+    """
+    Returns a tuple of (bool, int, str) where:
+    bool: True if the path is a sequence, False otherwise
+    int: The number of digits in the sequence
+    str: The sequence name with the correct number of digits
+    """
+    userpath = Path(userpath)
+    if userpath.is_dir():
+        return (False, 0, "")
+    with os.scandir(userpath.parent) as iter:
         iterslice = itertools.islice(iter, seq_depth)
         firstfile = None
         secondfile = None
@@ -108,17 +116,24 @@ class RosettaPath:
         if not firstfile or not secondfile:
             return (False, 0, "")
 
-        firstseq = re.search(r".*\.\d*\.", str(firstfile.name))
-        secondseq = re.search(r".*\.\d*\.", str(secondfile.name))
+    firstseq = re.search(r".*\.\d*\.", str(firstfile.name))
+    secondseq = re.search(r".*\.\d*\.", str(secondfile.name))
 
-        if firstseq and secondseq:
-            return (True, *self._make_seq_name(firstfile))
-        else:
-            return (False, 0, "")
-
-    def contains_seq(self) -> tuple[bool, int, str]:
-        if self.userpath.is_file():
-            return (False, 0, "")
-        for file in self.userpath.iterdir():
-            return self.is_seq(file)
+    if firstseq and secondseq:
+        return (True, *_make_seq_name(firstfile))
+    else:
         return (False, 0, "")
+
+def contains_seq(userpath: Union[str, Path]) -> tuple[bool, int, str]:
+    """
+    Returns a tuple of (bool, int, str) where:
+    bool: True if the directory contains a sequence, False otherwise
+    int: The number of digits in the sequence
+    str: The sequence name with the correct number of digits
+    """
+    userpath = Path(userpath)
+    if userpath.is_file():
+        return (False, 0, "")
+    for file in userpath.iterdir():
+        return is_seq(file)
+    return (False, 0, "")
