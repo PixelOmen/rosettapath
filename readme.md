@@ -4,15 +4,13 @@ RossetaPath objects translate network paths mounted to local volumes from one mo
 ___
 
 ## Overview
-###Usage
+### Usage
 [Basic Usage](#basic-usage)<br>
 [Override Default OS Prefixes](#override-default-os-prefixes)<br>
 [Input Path Regex Override](#input-path-regex-override)<br>
 [Override Class Defaults](#override-class-defaults)
 ###Utility Functions
 [Detect Image Sequences](#detect-image-sequences)
-
-####[License](#license)
 
 ___
 
