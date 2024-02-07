@@ -9,7 +9,7 @@ ___
 [Override Default OS Prefixes](#override-default-os-prefixes)<br>
 [Input Path Regex Override](#input-path-regex-override)<br>
 [Override Class Defaults](#override-class-defaults)<br>
-###Utility Functions
+### Utility Functions
 [Detect Image Sequences](#detect-image-sequences)
 
 ___
