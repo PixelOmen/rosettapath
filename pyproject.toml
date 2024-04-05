@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "rosettapath"
+version = "1.0.0"
+description = "RossetaPath objects translate network paths mounted to local volumes from one mount point to another across operating systems."
+authors = ["Emmanuel Acosta <pixleomen@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -12,7 +12,7 @@ ROOT_PARENT = ROOT.parent
 if ROOT_PARENT not in sys.path:
     sys.path.append(str(ROOT_PARENT))
 
-from src import RosettaPath, is_seq, contains_seq
+from src.rosettapath import RosettaPath, is_seq, contains_seq
 
 IMG_SEQ_DIR = HERE / "test_image_seq"
 IMG_SEQ = IMG_SEQ_DIR / "my_image_seq.0001.tif"
